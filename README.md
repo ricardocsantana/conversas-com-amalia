@@ -1,50 +1,51 @@
 # Conversas com Amália
 
-A European Portuguese (pt-PT) voice assistant: real-time voice chat with [teex/amalia](https://ollama.com/teex/amalia) — the first open LLM built natively for pt-PT — running locally via [Ollama](https://ollama.com), paired with a GPL-free pt-PT voice fine-tuned from Kokoro-82M ([logus2k/kokoro_tts_eu_pt](https://huggingface.co/logus2k/kokoro_tts_eu_pt)). Built by adapting Hugging Face's [speech-to-speech](https://github.com/huggingface/speech-to-speech) framework (full docs below).
+O objetivo deste projeto é tornar a [Amália](https://huggingface.co/amalia-llm/AMALIA-9B-0626-DPO) — o primeiro modelo de linguagem aberto treinado nativamente para português europeu — acessível através de conversa por voz. É um assistente de voz em pt-PT: fala em tempo real com a Amália (via [Ollama](https://ollama.com), correndo localmente), com uma voz pt-PT sem dependências GPL, afinada a partir do Kokoro-82M ([logus2k/kokoro_tts_eu_pt](https://huggingface.co/logus2k/kokoro_tts_eu_pt)). Construído a partir da framework [speech-to-speech](https://github.com/huggingface/speech-to-speech) da Hugging Face (documentação completa mais abaixo).
 
 https://github.com/user-attachments/assets/c3e1eb07-2281-461f-8f04-0e558ee1d9bb
 
-## Quickstart (self-hosted)
+## Começar (self-hosted)
 
-Requirements: macOS or Linux, [conda](https://docs.conda.io/en/latest/miniconda.html), and [Ollama](https://ollama.com/download).
+Requisitos: macOS ou Linux, [conda](https://docs.conda.io/en/latest/miniconda.html), e [Ollama](https://ollama.com/download).
 
 ```bash
-git clone <this-repo-url>
+git clone <url-deste-repositório>
 cd amalia
 
-# One-time setup: creates a "amalia" conda env (Python 3.11 — required, newer
-# Python has no wheels yet for some Darwin-only deps this pulls in), installs
-# this repo editable with the pt-PT TTS extra, and pulls teex/amalia.
+# Setup único: cria um ambiente conda "amalia" (Python 3.11 — obrigatório,
+# versões mais recentes de Python ainda não têm wheels para algumas
+# dependências exclusivas de macOS), instala este repositório em modo
+# editável com o extra de voz pt-PT, e faz o pull da teex/amalia.
 bash scripts/amalia_setup.sh
 
 conda activate amalia
 bash scripts/amalia_run.sh
 ```
 
-That launches `speech-to-speech local` — talk into your mic, hear Amália reply out loud, no browser needed.
+Isto arranca o `speech-to-speech local` — fala para o microfone, ouve a Amália a responder em voz alta, sem necessidade de browser.
 
-**Want the browser UI instead?** (mic button, live transcript, chat history)
+**Preferes a interface web?** (botão de microfone, transcrição ao vivo, histórico de conversa)
 
 ```bash
-# terminal 1 — the realtime backend
+# terminal 1 — o backend em tempo real
 MODE=serve bash scripts/amalia_run.sh
 
-# terminal 2 — the web demo
+# terminal 2 — a demo web
 npm ci --prefix demo
 pip install -r demo/requirements.txt
 SPEECH_TO_SPEECH_URL=ws://localhost:8765/v1/realtime uvicorn --app-dir demo server:app --port 7860
 ```
 
-Then open `http://localhost:7860`. In Settings, make sure **Web search** and **Camera snapshot** are switched off — `teex/amalia`'s Ollama build doesn't support tool calling, and either toggle will make every turn fail with a `400` from Ollama.
+Depois abre `http://localhost:7860`. Nas Definições, confirma que **Web search** e **Camera snapshot** estão desligados — o build da `teex/amalia` no Ollama não suporta tool calling, e qualquer um destes dois faz falhar todas as respostas com um `400` do Ollama.
 
-`scripts/amalia_run.sh` reads overrides from the environment — e.g. `STT_DEVICE=cpu`, `MODEL_NAME=teex/amalia:q8_0`, `INIT_CHAT_PROMPT="..."` — see the script for the full list and defaults.
+O `scripts/amalia_run.sh` lê overrides através de variáveis de ambiente — por exemplo `STT_DEVICE=cpu`, `MODEL_NAME=teex/amalia:q8_0`, `INIT_CHAT_PROMPT="..."` — consulta o script para a lista completa e os valores por omissão.
 
-### Known gotchas
+### Problemas conhecidos
 
-- **English STT by default is a trap.** If you swap `--stt_model_name`, avoid the plain `distil-whisper/distil-large-v3` default — it's an English-only distillation and will mistranscribe/mistranslate Portuguese speech into garbled English. `openai/whisper-large-v3-turbo` (this project's default) is genuinely multilingual.
-- **Tool calling breaks with this model.** `teex/amalia`'s Ollama template doesn't declare tool support; sending a non-empty `tools` array (web search, camera snapshot, or any custom tool) gets a hard `400 Bad Request` from Ollama, not a graceful ignore.
-- **MPS is slower than CPU for the pt-PT TTS voice**, measured: ~0.11 RTF (CPU) vs ~0.40 RTF (MPS) on Apple Silicon. The small-model overhead never gets amortized on Metal. Leave `kokoro-eu-pt` on its CPU default.
-- **Conversation history doesn't survive a reload.** Each new WebSocket connection gets a fresh, empty in-memory chat — there's no persistence across reconnects or backend restarts.
+- **O STT em inglês por omissão é uma armadilha.** Se alterares `--stt_model_name`, evita o valor por omissão `distil-whisper/distil-large-v3` — é uma destilação exclusivamente em inglês e vai transcrever/traduzir mal a fala em português para inglês incompreensível. O `openai/whisper-large-v3-turbo` (usado por omissão neste projeto) é genuinamente multilingue.
+- **Tool calling não funciona com este modelo.** O template da `teex/amalia` no Ollama não declara suporte a tools; enviar um array `tools` não vazio (pesquisa web, snapshot da câmara, ou qualquer tool personalizada) resulta num `400 Bad Request` do Ollama, sem fallback silencioso.
+- **O MPS é mais lento do que o CPU para a voz pt-PT**, medido: ~0.11 RTF (CPU) vs ~0.40 RTF (MPS) em Apple Silicon. A sobrecarga de um modelo pequeno nunca se amortiza no Metal. Deixa o `kokoro-eu-pt` no seu valor por omissão (CPU).
+- **O histórico da conversa não sobrevive a um reload.** Cada nova ligação WebSocket recebe um chat novo e vazio, em memória — não há persistência entre reconexões ou reinícios do backend.
 
 ---
 

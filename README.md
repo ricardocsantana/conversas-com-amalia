@@ -2,9 +2,7 @@
 
 A European Portuguese (pt-PT) voice assistant: real-time voice chat with [teex/amalia](https://ollama.com/teex/amalia) — the first open LLM built natively for pt-PT — running locally via [Ollama](https://ollama.com), paired with a GPL-free pt-PT voice fine-tuned from Kokoro-82M ([logus2k/kokoro_tts_eu_pt](https://huggingface.co/logus2k/kokoro_tts_eu_pt)). Built by adapting Hugging Face's [speech-to-speech](https://github.com/huggingface/speech-to-speech) framework (full docs below).
 
-<p align="center">
-  <video src="./docs/assets/amalia-demo.mp4" controls width="640"></video>
-</p>
+https://github.com/user-attachments/assets/c3e1eb07-2281-461f-8f04-0e558ee1d9bb
 
 ## Quickstart (self-hosted)
 

@@ -1,3 +1,55 @@
+# Conversas com Amália
+
+A European Portuguese (pt-PT) voice assistant: real-time voice chat with [teex/amalia](https://ollama.com/teex/amalia) — the first open LLM built natively for pt-PT — running locally via [Ollama](https://ollama.com), paired with a GPL-free pt-PT voice fine-tuned from Kokoro-82M ([logus2k/kokoro_tts_eu_pt](https://huggingface.co/logus2k/kokoro_tts_eu_pt)). Built by adapting Hugging Face's [speech-to-speech](https://github.com/huggingface/speech-to-speech) framework (full docs below).
+
+<p align="center">
+  <video src="./docs/assets/amalia-demo.mp4" controls width="640"></video>
+</p>
+
+## Quickstart (self-hosted)
+
+Requirements: macOS or Linux, [conda](https://docs.conda.io/en/latest/miniconda.html), and [Ollama](https://ollama.com/download).
+
+```bash
+git clone <this-repo-url>
+cd amalia
+
+# One-time setup: creates a "amalia" conda env (Python 3.11 — required, newer
+# Python has no wheels yet for some Darwin-only deps this pulls in), installs
+# this repo editable with the pt-PT TTS extra, and pulls teex/amalia.
+bash scripts/amalia_setup.sh
+
+conda activate amalia
+bash scripts/amalia_run.sh
+```
+
+That launches `speech-to-speech local` — talk into your mic, hear Amália reply out loud, no browser needed.
+
+**Want the browser UI instead?** (mic button, live transcript, chat history)
+
+```bash
+# terminal 1 — the realtime backend
+MODE=serve bash scripts/amalia_run.sh
+
+# terminal 2 — the web demo
+npm ci --prefix demo
+pip install -r demo/requirements.txt
+SPEECH_TO_SPEECH_URL=ws://localhost:8765/v1/realtime uvicorn --app-dir demo server:app --port 7860
+```
+
+Then open `http://localhost:7860`. In Settings, make sure **Web search** and **Camera snapshot** are switched off — `teex/amalia`'s Ollama build doesn't support tool calling, and either toggle will make every turn fail with a `400` from Ollama.
+
+`scripts/amalia_run.sh` reads overrides from the environment — e.g. `STT_DEVICE=cpu`, `MODEL_NAME=teex/amalia:q8_0`, `INIT_CHAT_PROMPT="..."` — see the script for the full list and defaults.
+
+### Known gotchas
+
+- **English STT by default is a trap.** If you swap `--stt_model_name`, avoid the plain `distil-whisper/distil-large-v3` default — it's an English-only distillation and will mistranscribe/mistranslate Portuguese speech into garbled English. `openai/whisper-large-v3-turbo` (this project's default) is genuinely multilingual.
+- **Tool calling breaks with this model.** `teex/amalia`'s Ollama template doesn't declare tool support; sending a non-empty `tools` array (web search, camera snapshot, or any custom tool) gets a hard `400 Bad Request` from Ollama, not a graceful ignore.
+- **MPS is slower than CPU for the pt-PT TTS voice**, measured: ~0.11 RTF (CPU) vs ~0.40 RTF (MPS) on Apple Silicon. The small-model overhead never gets amortized on Metal. Leave `kokoro-eu-pt` on its CPU default.
+- **Conversation history doesn't survive a reload.** Each new WebSocket connection gets a fresh, empty in-memory chat — there's no persistence across reconnects or backend restarts.
+
+---
+
 <div align="center">
   <div>&nbsp;</div>
   <img src="https://raw.githubusercontent.com/huggingface/speech-to-speech/main/logo.png" width="600"/>

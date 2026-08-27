@@ -1,12 +1,12 @@
 ---
-title: HF Realtime Voice
+title: Conversas com Amália
 emoji: 🎙️
-colorFrom: indigo
-colorTo: purple
+colorFrom: green
+colorTo: red
 sdk: docker
 app_port: 7860
 pinned: false
-short_description: Voice chat over WebSocket or WebRTC against HF speech-to-speech
+short_description: A European Portuguese (pt-PT) voice assistant built on Hugging Face's speech-to-speech stack
 hf_oauth: true
 hf_oauth_expiration_minutes: 10080
 ---

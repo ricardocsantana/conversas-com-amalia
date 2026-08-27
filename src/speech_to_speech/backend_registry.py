@@ -17,6 +17,7 @@ from speech_to_speech.arguments_classes.facebookmms_tts_arguments import Faceboo
 from speech_to_speech.arguments_classes.faster_whisper_stt_arguments import (
     FasterWhisperSTTHandlerArguments,
 )
+from speech_to_speech.arguments_classes.kokoro_eu_pt_tts_arguments import KokoroEuPtTTSHandlerArguments
 from speech_to_speech.arguments_classes.kokoro_tts_arguments import KokoroTTSHandlerArguments
 from speech_to_speech.arguments_classes.language_model_arguments import LanguageModelHandlerArguments
 from speech_to_speech.arguments_classes.mlx_audio_whisper_arguments import (
@@ -506,6 +507,19 @@ TTS_BACKENDS = build_backend_registry(
             ),
             config_prefix="kokoro",
             required_extra="kokoro",
+        ),
+        BackendSpec(
+            "kokoro-eu-pt",
+            "tts",
+            KokoroEuPtTTSHandlerArguments,
+            _simple_handler_factory(
+                "speech_to_speech.TTS.kokoro_eu_pt_handler",
+                "KokoroEuPtTTSHandler",
+                setup_should_listen=True,
+                context_kwargs=True,
+            ),
+            config_prefix="kokoro_eu_pt",
+            required_extra="kokoro-eu-pt",
         ),
         BackendSpec(
             "qwen3",

@@ -147,16 +147,17 @@ function saveSettings(s) {
 function loadTools() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.tools) || "{}");
-    // Both tools default ON (web search still only activates when a key exists).
-    // We never call getUserMedia on page load — the camera only actually starts
-    // on a user gesture (conversation start), so a default-on flag doesn't
-    // silently resume the webcam; an explicit saved `false` is respected.
+    // web_search defaults ON (it still only activates when a key exists).
+    // camera_snapshot defaults OFF: a non-empty `tools` array is sent to the
+    // backend whenever any tool is enabled, and models without tool-calling
+    // support (e.g. Ollama models lacking a tool-capable template) reject
+    // the request outright rather than ignoring the field.
     return {
       web_search: raw.web_search ?? true,
-      camera_snapshot: raw.camera_snapshot ?? true,
+      camera_snapshot: raw.camera_snapshot ?? false,
     };
   } catch {
-    return { web_search: true, camera_snapshot: true };
+    return { web_search: true, camera_snapshot: false };
   }
 }
 
